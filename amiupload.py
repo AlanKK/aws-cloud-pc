@@ -14,11 +14,7 @@ import sys
 
 def parse_args():
     """
-        Required args
-        - file to upload
-        - aws profile (must be pre-configured)
-        - aws_regions
-        - AMI save name
+    Argument parser and validator
     """
     parser = argparse.ArgumentParser(description="Uploads specified VMDK file to AWS s3 bucket, and converts to AMI")
     parser.add_argument('-r', '--aws_regions', type=str, nargs='+', required=True,
@@ -44,6 +40,11 @@ def parse_args():
 
 
 def validate_args(args):
+    """
+    Perform necessary validation checks
+    :param args:
+    :return:
+    """
     # print size of vm to be dl, if dl dir exists, check that file to uplad is a vmdk
     if not os.path.isdir(args.directory):
         print "Directory {} does not exist".format(args.directory)
@@ -58,6 +59,11 @@ def validate_args(args):
 
 
 def vmdk_to_ami(args):
+    """
+    Calls methods to perform vmdk import
+    :param args:
+    :return:
+    """
     aws_importer = AWSUtilities.AWSUtils(args.directory, args.aws_profile, args.s3_bucket,
                                          args.aws_regions, args.ami_name, args.vmdk_upload_file)
     aws_importer.import_vmdk()

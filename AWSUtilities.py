@@ -43,19 +43,30 @@ class AWSUtils:
         self.upload_file = upload_file
 
     def validate(self):
+        """
+        Call instance validation methods
+        :return:
+        """
         self.validate_regions()
         self.validate_bucket()
         self.validate_ec2_action()
 
     def validate_regions(self):
+        """
+        Validate the user specified regions are valid
+        :return:
+        """
         for region in self.aws_regions:
             if region not in aws_regions:
                 print "Error: Specified region: {} is not a valid aws_region".format(region)
                 print "Valid regions are: {}".format(aws_regions)
 
     def validate_ec2_action(self):
-        import_cmd = 'aws ec2 import-image --dry-run --profile {} --region {}'.format(self.aws_project,
-                                                                                      self.aws_regions[0])
+        """
+        Attempt to validate that the provided user has permissions to import an AMI
+        :return:
+        """
+        import_cmd = 'aws ec2 import-image --dry-run --profile {}'.format(self.aws_project, self.aws_regions[0])
         print "Attempting ec2 import dry run: {}".format(import_cmd)
         try:
             subprocess.check_output(shlex.split(import_cmd), stderr=subprocess.STDOUT)
@@ -69,7 +80,12 @@ class AWSUtils:
             sys.exit(5)
 
     def validate_bucket(self):
-        s3_check_cmd = "aws s3 ls s3://{} --profile '{}'".format(self.bucket_name, self.aws_project)
+        """
+        Do a quick check to see if the s3 bucket is valid
+        :return:
+        """
+        s3_check_cmd = "aws s3 ls s3://{} --profile '{} --region {}'".format(self.bucket_name, self.aws_project,
+                                                                             self.bucket_name)
         try:
             subprocess.check_output(shlex.split(s3_check_cmd))
         except subprocess.CalledProcessError as e:
