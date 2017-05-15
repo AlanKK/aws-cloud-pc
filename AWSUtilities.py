@@ -43,8 +43,15 @@ class AWSUtils:
         self.upload_file = upload_file
 
     def validate(self):
+        self.validate_regions()
         self.validate_bucket()
         self.validate_ec2_action()
+
+    def validate_regions(self):
+        for region in self.aws_regions:
+            if region not in aws_regions:
+                print "Error: Specified region: {} is not a valid aws_region".format(region)
+                print "Valid regions are: {}".format(aws_regions)
 
     def validate_ec2_action(self):
         import_cmd = 'aws ec2 import-image --dry-run --profile {} --region {}'.format(self.aws_project,
@@ -86,9 +93,9 @@ class AWSUtils:
                 .format(ami_name, self.aws_project, region)
             res = subprocess.check_output(shlex.split(describe_cmd))
 
-            print "describe command returned: {}".format(res.stdout)
+            print "describe command returned: {}".format(res)
 
-            image_details = parse_image_json(res.stdout)
+            image_details = parse_image_json(res)
             if not image_details:
                 if detail_query_attempts > 5:
                     print "Tried to get image details 5 times and failed, exiting"
@@ -116,9 +123,9 @@ class AWSUtils:
                 .format(ami_id, self.aws_project, source_region, region, new_name)
             res = subprocess.check_output(shlex.split(copy_img_cmd))
 
-            print "Copy cmd returned: {}".format(res.stdout)
+            print "Copy cmd returned: {}".format(res)
 
-            new_image_id = json.loads(res.stdout).get('ImageId')
+            new_image_id = json.loads(res).get('ImageId')
             new_image_ids.append((new_image_id, region))
 
             print "new image Id is: {}".format(new_image_id)
@@ -152,8 +159,8 @@ class AWSUtils:
             .format(self.aws_project, region, image_id)
         while waiting:
             res = subprocess.check_output(shlex.split(describe_image_cmd))
-            print "described image returned: {}".format(res.stdout)
-            image_json = parse_image_json(res.stdout)
+            print "described image returned: {}".format(res)
+            image_json = parse_image_json(res)
             image_state = image_json['State']
             if image_state == 'available':
                 print "Copied AMI is renamed and ready to use!"
@@ -212,9 +219,15 @@ class AWSUtils:
         import_cmd = "aws ec2 import-image --description '{}' --profile '{}' --region '{}' --output 'json'" \
                      " --disk-containers file://{}"\
             .format(description, self.aws_project, region, config_file_location)
-        res = subprocess.check_output(shlex.split(import_cmd))
-        print "got res.stdout: {}".format(res.stdout)
-        res_json = json.loads(res.stdout)
+        try:
+            res = subprocess.check_output(shlex.split(import_cmd), stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            print "Error importing to ec2"
+            print "output: {}".format(e.output)
+            sys.exit(5)
+
+        print "got res: {}".format(res)
+        res_json = json.loads(res)
         task_running, import_id = self.check_task_status_and_id(res_json)
         return import_id
 
@@ -249,8 +262,8 @@ class AWSUtils:
         while task_running:
             import_status_cmd = "aws ec2 --profile {}  --region '{}' --output 'json' describe-import-image-tasks --import-task-ids {}".format(self.aws_project, region, import_id)
             res = subprocess.check_output(shlex.split(import_status_cmd))
-            print "Current status: {}".format(res.stdout)
-            res_json = json.loads(res.stdout)
+            print "Current status: {}".format(res)
+            res_json = json.loads(res)
             task_running, image_id = self.check_task_status_and_id(res_json)
 
     @staticmethod
@@ -291,11 +304,12 @@ class AWSUtils:
         """
         # Set the inital upload to be the first region in the list
         first_upload_region = self.aws_regions[0]
+
         print "Initial AMI will be created in: {}".format(first_upload_region)
-        self.upload_to_s3(first_upload_region)
-        # If the upload was succesful, the name to reference for import is now the basename
-        description = "AMI upload of: {}".format(self.ami_name)
-        temp_fd, file_location = self.create_config_file(self.ami_name, description)
+        self.upload_to_s3(region=first_upload_region)
+        # If the upload was successful, the name to reference for import is now the basename
+        description = "AMI upload of: {}".format(os.path.basename(self.upload_file))
+        temp_fd, file_location = self.create_config_file(os.path.basename(self.upload_file), description)
         import_id = self.run_ec2_import(file_location, description, first_upload_region)
         self.wait_for_import_to_complete(import_id)
         self.rename_image(import_id, self.ami_name, source_region=first_upload_region)
