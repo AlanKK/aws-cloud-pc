@@ -5,7 +5,6 @@ import shlex
 import subprocess
 import json
 import time
-
 aws_regions = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2', 'ca-central-1', 'eu-west-1', 'eu-central-1',
                'eu-west-2', 'ap-northeast-1', 'ap-northeast-2', 'ap-southeast-2', 'ap-south-1', 'sa-east-1']
 
@@ -42,6 +41,35 @@ class AWSUtils:
         self.bucket_name = bucket
         self.ami_name = ami_name
         self.upload_file = upload_file
+
+    def validate(self):
+        self.validate_bucket()
+        self.validate_ec2_action()
+
+    def validate_ec2_action(self):
+        import_cmd = 'aws ec2 import-image --dry-run --profile {} --region {}'.format(self.aws_project,
+                                                                                      self.aws_regions[0])
+        print "Attempting ec2 import dry run: {}".format(import_cmd)
+        try:
+            subprocess.check_output(shlex.split(import_cmd), stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            if "(DryRunOperation)" in e.output:
+                # If it failed because of a dry run (what we asked for) then this except can be ignored
+                print "Dry run operation successful!"
+                return
+            print "Error: {}".format(e.output)
+            print "It doesn't seem like your user has the required permissions to import an ami image from s3"
+            sys.exit(5)
+
+    def validate_bucket(self):
+        s3_check_cmd = "aws s3 ls s3://{} --profile '{}'".format(self.bucket_name, self.aws_project)
+        try:
+            subprocess.check_output(shlex.split(s3_check_cmd))
+        except subprocess.CalledProcessError as e:
+            print "Error: {}".format(e)
+            print "Unable to query s3 bucket: {}. Validate that it exists, and your user has sufficient permissions"\
+                .format(self.bucket_name)
+            sys.exit(5)
 
     def get_image_id_by_name(self, ami_name, region='us-east-1'):
         """
@@ -198,7 +226,19 @@ class AWSUtils:
         """
         s3_import_cmd = "aws s3 cp {} s3://{} --profile '{}' --region {}".format(self.upload_file, self.bucket_name,
                                                                                  self.aws_project, region)
-        res = subprocess.check_output(shlex.split(s3_import_cmd))
+        print "Uploading to bucket {} in s3 with the cmd: {}".format(self.bucket_name, s3_import_cmd)
+        # s3 upload puts DL progress to stderr
+        s3_upload = subprocess.Popen(shlex.split(s3_import_cmd), stderr=subprocess.PIPE)
+        while True:
+            progress = s3_upload.stderr.readline()
+            if progress == '' and s3_upload.poll() is not None:
+                break
+            if progress:
+                print (progress)
+        rc = s3_upload.poll()
+        if rc != 0:
+            raise subprocess.CalledProcessError(rc)
+        print "Upload completed successfully"
 
     def wait_for_import_to_complete(self, import_id, region='us-east-1'):
         """
@@ -250,8 +290,8 @@ class AWSUtils:
         :return:
         """
         # Set the inital upload to be the first region in the list
-        first_upload_region = aws_regions[0]
-
+        first_upload_region = self.aws_regions[0]
+        print "Initial AMI will be created in: {}".format(first_upload_region)
         self.upload_to_s3(first_upload_region)
         # If the upload was succesful, the name to reference for import is now the basename
         description = "AMI upload of: {}".format(self.ami_name)
