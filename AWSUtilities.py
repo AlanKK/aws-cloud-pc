@@ -66,7 +66,8 @@ class AWSUtils:
         Attempt to validate that the provided user has permissions to import an AMI
         :return:
         """
-        import_cmd = 'aws ec2 import-image --dry-run --profile {}'.format(self.aws_project, self.aws_regions[0])
+        import_cmd = 'aws ec2 import-image --dry-run --profile {} --region {}'\
+            .format(self.aws_project, self.aws_regions[0])
         print "Attempting ec2 import dry run: {}".format(import_cmd)
         try:
             subprocess.check_output(shlex.split(import_cmd), stderr=subprocess.STDOUT)
@@ -84,8 +85,9 @@ class AWSUtils:
         Do a quick check to see if the s3 bucket is valid
         :return:
         """
-        s3_check_cmd = "aws s3 ls s3://{} --profile '{} --region {}'".format(self.bucket_name, self.aws_project,
-                                                                             self.bucket_name)
+        s3_check_cmd = "aws s3 ls s3://{} --profile '{}' --region '{}'".format(self.bucket_name, self.aws_project,
+                                                                               self.aws_regions[0])
+        print "Checking for s3 bucket"
         try:
             subprocess.check_output(shlex.split(s3_check_cmd))
         except subprocess.CalledProcessError as e:
