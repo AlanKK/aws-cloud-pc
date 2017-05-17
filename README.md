@@ -23,7 +23,12 @@ and ~/.awscli/config as defined in: http://docs.aws.amazon.com/cli/latest/usergu
 This script does its best to validate that you have permissions, but no promises are made
 
 ## Installation
-    Coming soon
+
+Ensure you have the local silo repository in your .pip config and:
+
+```
+$ pip install amiuploader
+```
 
 ## Running
 You can get a list of all arguments at the runtime help prompt
@@ -31,6 +36,6 @@ You can get a list of all arguments at the runtime help prompt
 Example run: (Upload ami to us-west-1 and us-west-2 regions, with the name "dr-test")
 
 ```sh
-$ amiupload.py -r 'us-west-1' 'us-west-2' -a "aws-admin-it" -b silo-ami-testing -f AMI_DB-Remote.vmdk -n "dr-test"
+$ amiupload -r 'us-west-1' 'us-west-2' -a "aws-admin-it" -b silo-ami-testing -f AMI_DB-Remote.vmdk -n "dr-test"
 ```
 
