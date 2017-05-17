@@ -25,7 +25,7 @@ setup(name='amiuploader',
 
           # Indicate who your project is intended for
           'Intended Audience :: Developers, Sys Admins',
-          'Topic :: AWS :: Upload tools',
+          'Topic :: Other/Nonlisted Topic :: AMI Upload tools',
 
           # Pick your license as you wish (should match "license" above)
           "License :: MIT License",
