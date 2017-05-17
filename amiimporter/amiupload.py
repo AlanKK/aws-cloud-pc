@@ -1,9 +1,11 @@
 #!/usr/bin/python
 import argparse
-import AWSUtilities
-import tempfile
 import os
 import sys
+import tempfile
+
+import AWSUtilities
+
 
 # TODO: Add licensing
 # arg validation
@@ -68,6 +70,6 @@ def vmdk_to_ami(args):
                                          args.aws_regions, args.ami_name, args.vmdk_upload_file)
     aws_importer.import_vmdk()
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
     vmdk_to_ami(args)
