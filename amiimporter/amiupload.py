@@ -51,6 +51,12 @@ def validate_args(args):
     if not os.path.isdir(args.directory):
         print "Directory {} does not exist".format(args.directory)
         sys.exit(5)
+
+    try:
+        args.vmdk_upload_file = args.vmdk_upload_file
+    except AttributeError:
+        args.vmdk_upload_file = None
+
     if args.vmdk_upload_file and not os.path.isfile(args.vmdk_upload_file):
         print "Specified file: {} does not exist".format(args.vmdk_upload_file)
         sys.exit(5)
