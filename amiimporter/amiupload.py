@@ -79,3 +79,7 @@ def vmdk_to_ami(args):
 def main():
     args = parse_args()
     vmdk_to_ami(args)
+
+
+if __name__ == "__main__":
+    main()

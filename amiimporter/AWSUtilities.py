@@ -163,7 +163,11 @@ class AWSUtils:
         """
         deregister_cmd = "aws ec2 --profile {} --region {} deregister-image --image-id {}"\
             .format(self.aws_project, region, ami_id)
-        subprocess.check_output(shlex.split(deregister_cmd))
+        print "De-registering old image, now that the new one exists."
+        print "De-registering cmd: {}".format(deregister_cmd)
+        res = subprocess.check_output(shlex.split(deregister_cmd))
+        print "Response: {}".format(res)
+        print "Not monitoring de-register command"
 
     def wait_for_copy_available(self, image_id, region):
         """
@@ -182,10 +186,9 @@ class AWSUtils:
             image_state = image_json['State']
             if image_state == 'available':
                 print "Copied AMI is renamed and ready to use!"
-                waiting = False
+                return
             elif image_state == 'failed':
                 print "Copied AMI failed for some reason..."
-                waiting = False
                 sys.exit(5)
             else:
                 print "image state is currently: {}".format(image_state)
@@ -332,6 +335,8 @@ class AWSUtils:
         self.wait_for_import_to_complete(import_id)
         self.rename_image(import_id, self.ami_name, source_region=first_upload_region)
         return import_id
+    
+
 
 
 
