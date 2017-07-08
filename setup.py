@@ -9,7 +9,7 @@ setup(name='amiuploader',
       author_email='drohde@sciencelogic.com',
       packages=['amiimporter'],
       keywords='ami upload vmdk vcenter ovf AWS',
-      url='todo',
+      url='https://github.com/ScienceLogic/amiuploader/archive/1.0.0.zip',
       license="MIT",
       install_requires=[
           'awscli',
@@ -17,23 +17,11 @@ setup(name='amiuploader',
       ],
       scripts=['bin/amiupload'],
       classifiers=[
-          # How mature is this project? Common values are
-          #   3 - Alpha
-          #   4 - Beta
-          #   5 - Production/Stable
           'Development Status :: 4 - Beta',
-
-          # Indicate who your project is intended for
-          'Intended Audience :: Developers, Sys Admins',
-          'Topic :: Other/Nonlisted Topic :: AMI Upload tools',
-
-          # Pick your license as you wish (should match "license" above)
-          "License :: MIT License",
-
-          # Specify the Python versions you support here. In particular, ensure
-          # that you indicate whether you support Python 2, Python 3 or both.
+          'Intended Audience :: System Administrators',
+          'Topic :: Other/Nonlisted Topic',
+          "License :: OSI Approved :: MIT License",
           'Programming Language :: Python :: 2.7',
-
       ]
 
       )
