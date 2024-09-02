@@ -43,7 +43,7 @@ process_vm_file "$@"
 echo "Uploading $VM_FILE to s3://$S3_BUCKET_NAME"
 aws s3 cp "$VM_FILE" "s3://$S3_BUCKET_NAME/"
 
-#echo "Creating iam role and setting permissions"
+echo "Creating iam role and setting permissions"
 cat <<EOF > trust-policy.json
 {
   "Version": "2012-10-17",
@@ -61,9 +61,9 @@ cat <<EOF > trust-policy.json
   ]
 }
 EOF
-#aws iam create-role --role-name vmimport --assume-role-policy-document file://trust-policy.json
+aws iam create-role --role-name vmimport --assume-role-policy-document file://trust-policy.json
 
-#echo "Set up permissions for S3 access"
+echo "Set up permissions for S3 access"
 cat <<EOF > role-policy.json
 {
   "Version": "2012-10-17",
@@ -100,7 +100,7 @@ cat <<EOF > role-policy.json
   ]
 }
 EOF
-#aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document file://role-policy.json
+aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document file://role-policy.json
 
 echo "Creating import task"
 VM_FILENAME=$(basename "$VM_FILE")

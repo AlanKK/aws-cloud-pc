@@ -1,9 +1,14 @@
 #!/bin/bash
 
 # Find the instance ID with the "game" tag
-INSTANCE_ID=$(aws ec2 describe-instances --filters Name=tag:game --query 'Reservations[].Instances[].InstanceId' --output text)
+INSTANCE_ID=$(aws ec2 describe-instances | jq -r '.Reservations[].Instances[] | select(.Tags[] | .Key == "game") | .InstanceId' 
+)
 
-# Terminate the EC2 instance
+if [ -z "$INSTANCE_ID" ] ; then
+    echo "Can't find instance."
+    exit 1
+fi
+
 aws ec2 terminate-instances --instance-ids $INSTANCE_ID
 
 # Check the status of the instance every 5 seconds
