@@ -54,8 +54,6 @@ echo "EC2 instance stopped and AMI created:"
 echo "AMI ID: $AMI_ID"
 echo "Instance State: $(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].State.Name" --output text)"
 
-read -p "Press Enter to continue and terminate the EC2 instance... "
-
 echo "Terminating the EC2 instance..."
 if ! aws ec2 terminate-instances  --instance-ids $INSTANCE_ID; then
   echo "Error: Failed to terminate EC2 instance $INSTANCE_ID"

@@ -4,8 +4,11 @@ Bucket="ec2-amd-windows-drivers"
 LocalPath="~/Downloads/CloudGaming/"
 
 aws s3 cp --recursive s3://ec2-amd-windows-drivers/latest/ .
+#aws s3 cp --recursive s3://ec2-windows-nvidia-drivers/latest/ .
 
 exit
+
+# Originally ...
 
 # $KeyPrefix = "latest/AMD_GPU_WINDOWS10"
 

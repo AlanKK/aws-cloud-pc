@@ -28,8 +28,16 @@ INSTANCE_ID=$(aws ec2 run-instances --launch-template LaunchTemplateId=$TEMPLATE
 echo "Instance ID: $INSTANCE_ID"
 
 echo
-echo -ne "Waiting for instance to pass status checks..."
+echo "Waiting for instance to initialize..."
 while true; do
+  if [ -z "$IP_ADDRESS" ]; then
+      IP_ADDRESS=$(aws ec2 describe-instances | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Association.PublicIp')
+      if [ -n "$IP_ADDRESS" ]; then
+          echo_ts "Changing gamer.alankathome.com to $IP_ADDRESS"
+          update_cloudflare_dns/update_cloudflare_dns -c update_cloudflare_dns/config.json -i $IP_ADDRESS
+      fi
+  fi
+
   status=$(aws ec2 describe-instance-status --instance-ids $INSTANCE_ID| jq -r '.InstanceStatuses[] | select(.InstanceStatus.Details[0].Status == "passed" and .SystemStatus.Details[0].Status == "passed") | "done"')
   if [ "$status" == "done" ]; then
     echo
@@ -40,10 +48,6 @@ while true; do
   fi
   sleep 5
 done
-
-# Print the public IP address
-IP_ADDRESS=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[].Instances[].PublicIpAddress' --output text)
-echo_ts "Public IP address: $IP_ADDRESS"
 
 end_time=$(date +%s)
 duration=$((end_time - start_time))

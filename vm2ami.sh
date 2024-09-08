@@ -1,10 +1,7 @@
 #!/bin/bash
 
 set -e
-S3_BUCKET_NAME="ami-uploads098709698"
-REGION="us-east-1"
-AMI_NAME="Win10_v10"
-AMI_DESCRIPTION="Win10_v10"
+source config.txt
 
 # Parse input parameters
 process_vm_file() {
