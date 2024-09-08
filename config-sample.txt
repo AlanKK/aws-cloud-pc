@@ -1,0 +1,4 @@
+S3_BUCKET_NAME="your-bucket-name"
+REGION="us-east-1"
+AMI_NAME="Win10_v1"
+AMI_DESCRIPTION="Win10_Gaming"
